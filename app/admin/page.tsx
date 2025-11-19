@@ -12,11 +12,9 @@ import { ContentEditor } from "@/components/admin/content-editor"
 import { ContentList } from "@/components/admin/content-list"
 import { ScheduledContent } from "@/lib/types/content-schedule"
 import { apiCall } from "@/lib/api-client"
-import { Shield, Heart, Sparkles, Plus, CalendarIcon, FileText, LogOut, Mail, Loader2 } from 'lucide-react'
+import { Shield, Plus, CalendarIcon, FileText, LogOut, Mail, Loader2 } from 'lucide-react'
 
 interface AdminStats {
-    pendingSecrets: number
-    pendingRequests: number
     scheduledCount: number
     totalCount: number
 }
@@ -26,8 +24,6 @@ export default function AdminPage() {
     const router = useRouter()
 
     const [stats, setStats] = useState<AdminStats>({
-        pendingSecrets: 0,
-        pendingRequests: 0,
         scheduledCount: 0,
         totalCount: 0,
     })
@@ -123,25 +119,7 @@ export default function AdminPage() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">Pending Secrets</CardTitle>
-                        <Heart className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{loading ? <Loader2 className="h-5 w-5 animate-spin" /> : stats.pendingSecrets}</div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">Pending Requests</CardTitle>
-                        <Sparkles className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{loading ? <Loader2 className="h-5 w-5 animate-spin" /> : stats.pendingRequests}</div>
-                    </CardContent>
-                </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium">Scheduled Content</CardTitle>
@@ -175,18 +153,6 @@ export default function AdminPage() {
                     <TabsTrigger value="editor">
                         <Plus className="h-4 w-4 mr-2" />
                         {editingContent ? "Edit Content" : "New Content"}
-                    </TabsTrigger>
-                    <TabsTrigger value="secrets" className="relative">
-                        Secrets
-                        {stats.pendingSecrets > 0 && (
-                            <Badge className="ml-2 h-5 w-5 flex items-center justify-center p-0 text-xs">{stats.pendingSecrets}</Badge>
-                        )}
-                    </TabsTrigger>
-                    <TabsTrigger value="requests" className="relative">
-                        Requests
-                        {stats.pendingRequests > 0 && (
-                            <Badge className="ml-2 h-5 w-5 flex items-center justify-center p-0 text-xs">{stats.pendingRequests}</Badge>
-                        )}
                     </TabsTrigger>
                 </TabsList>
 
@@ -228,18 +194,6 @@ export default function AdminPage() {
                             setActiveTab("content")
                         }}
                     />
-                </TabsContent>
-
-                <TabsContent value="secrets">
-                    <div className="p-8 text-center text-muted-foreground">
-                        Secrets moderation feature coming soon.
-                    </div>
-                </TabsContent>
-
-                <TabsContent value="requests">
-                    <div className="p-8 text-center text-muted-foreground">
-                        Custom poem requests moderation coming soon.
-                    </div>
                 </TabsContent>
             </Tabs>
         </div>

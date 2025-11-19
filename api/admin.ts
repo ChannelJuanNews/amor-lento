@@ -28,11 +28,7 @@ adminRouter.get('/stats', async (req: Request, res: Response) => {
             .from('scheduled_content')
             .select('*', { count: 'exact', head: true })
 
-        // TODO: Add secrets and requests tables when they exist
-        // For now, return 0 for these
         const stats = {
-            pendingSecrets: 0,
-            pendingRequests: 0,
             scheduledCount: scheduledCount || 0,
             totalCount: totalCount || 0,
         }

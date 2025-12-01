@@ -59,6 +59,7 @@ function transformContentRow(row: any): any {
         createdAt: row.created_at,
         updatedAt: row.updated_at,
         authorNotes: row.author_notes || undefined,
+        audioSrc: row.audio_src || undefined,
     }
 }
 
@@ -120,6 +121,7 @@ function transformContentToDb(content: any): any {
         published_at: publishedAt,
         recurrence: content.recurrence || null,
         author_notes: content.authorNotes || content.author_notes || null,
+        audio_src: content.audioSrc || content.audio_src || null,
     }
 }
 

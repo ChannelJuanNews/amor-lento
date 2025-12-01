@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Navbar } from "@/components/core/navbar"
 import { Footer } from "@/components/core/footer"
@@ -8,9 +8,10 @@ import { LocaleProvider } from "@/lib/i18n/locale-context"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { ArrowLeft, Loader2, Play, Pause } from "lucide-react"
+import { ArrowLeft, Loader2 } from "lucide-react"
 import { apiCall } from "@/lib/api-client"
 import type { Poem } from "@/lib/types/poem"
+import { AudioPlayer } from "@/components/core/audio-player"
 
 function PoemDetailContent() {
     const params = useParams()
@@ -19,8 +20,6 @@ function PoemDetailContent() {
     const [poem, setPoem] = useState<Poem | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-    const [isPlaying, setIsPlaying] = useState(false)
-    const audioRef = useRef<HTMLAudioElement | null>(null)
 
     useEffect(() => {
         const fetchPoem = async () => {
@@ -39,25 +38,7 @@ function PoemDetailContent() {
         if (slug) {
             fetchPoem()
         }
-
-        // Cleanup: pause and cleanup audio when component unmounts or slug changes
-        return () => {
-            if (audioRef.current) {
-                audioRef.current.pause()
-                audioRef.current = null
-            }
-            setIsPlaying(false)
-        }
     }, [slug])
-
-    // Reset audio when poem changes
-    useEffect(() => {
-        if (audioRef.current) {
-            audioRef.current.pause()
-            audioRef.current = null
-        }
-        setIsPlaying(false)
-    }, [poem?.audioSrc])
 
     if (loading) {
         return (
@@ -108,40 +89,10 @@ function PoemDetailContent() {
             : `/api/poems/${slug}/audio`
         : null
 
-    const handlePlayPause = () => {
-        if (!audioUrl) return
-
-        if (!audioRef.current) {
-            audioRef.current = new Audio(audioUrl)
-            audioRef.current.addEventListener('ended', () => {
-                setIsPlaying(false)
-            })
-            audioRef.current.addEventListener('play', () => {
-                setIsPlaying(true)
-            })
-            audioRef.current.addEventListener('pause', () => {
-                setIsPlaying(false)
-            })
-            audioRef.current.addEventListener('error', () => {
-                setIsPlaying(false)
-                console.error('Error playing audio')
-            })
-        }
-
-        if (isPlaying) {
-            audioRef.current.pause()
-        } else {
-            audioRef.current.play().catch((err) => {
-                console.error('Error playing audio:', err)
-                setIsPlaying(false)
-            })
-        }
-    }
-
     return (
         <>
             <Navbar />
-            <main className="container mx-auto px-4 py-12">
+            <main className="container mx-auto px-4 py-12 pb-24">
                 <div className="max-w-4xl mx-auto space-y-6">
                     <Button variant="ghost" onClick={() => router.push("/poems")} className="mb-4">
                         <ArrowLeft className="h-4 w-4 mr-2" />
@@ -164,28 +115,6 @@ function PoemDetailContent() {
                                 )}
                             </div>
                             <h1 className="font-serif text-2xl md:text-3xl font-bold">{poem.title}</h1>
-                            {audioUrl && (
-                                <div className="mt-4">
-                                    <Button
-                                        onClick={handlePlayPause}
-                                        variant="outline"
-                                        size="lg"
-                                        className="flex items-center gap-2"
-                                    >
-                                        {isPlaying ? (
-                                            <>
-                                                <Pause className="h-5 w-5" />
-                                                Pause Audio
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Play className="h-5 w-5" />
-                                                Play Audio
-                                            </>
-                                        )}
-                                    </Button>
-                                </div>
-                            )}
                         </CardHeader>
                         <CardContent>
                             <div className="prose prose-rose max-w-none">
@@ -211,6 +140,9 @@ function PoemDetailContent() {
                 </div>
             </main>
             <Footer />
+            {audioUrl && (
+                <AudioPlayer audioUrl={audioUrl} title={poem.title} />
+            )}
         </>
     )
 }

@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { Navbar } from "@/components/core/navbar"
 import { Footer } from "@/components/core/footer"

@@ -26,6 +26,7 @@ export interface ScheduledContent {
   createdAt: string
   updatedAt: string
   authorNotes?: string
+  audioSrc?: string
 }
 
 export interface ContentCalendarEvent {

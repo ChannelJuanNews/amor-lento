@@ -45,6 +45,7 @@ export function ContentEditor({ content, onSave, onCancel }: ContentEditorProps)
     publishedAt: undefined,
     recurrence: undefined,
     authorNotes: "",
+    audioSrc: "",
   })
 
   // Helper function to format date-only (YYYY-MM-DD)
@@ -142,6 +143,7 @@ export function ContentEditor({ content, onSave, onCancel }: ContentEditorProps)
         publishedAt: content.publishedAt,
         recurrence: content.recurrence,
         authorNotes: content.authorNotes || "",
+        audioSrc: content.audioSrc || "",
       })
       // Extract timezone from publishedAt if it exists
       if (content.publishedAt) {
@@ -163,6 +165,7 @@ export function ContentEditor({ content, onSave, onCancel }: ContentEditorProps)
         publishedAt: undefined,
         recurrence: undefined,
         authorNotes: "",
+        audioSrc: "",
       })
       setPublishedTimezone("America/New_York")
     }
@@ -198,6 +201,7 @@ export function ContentEditor({ content, onSave, onCancel }: ContentEditorProps)
         published_at: publishedAtFormatted,
         recurrence: formData.recurrence || null,
         author_notes: formData.authorNotes || null,
+        audioSrc: formData.audioSrc || null,
       }
 
       let savedContent: ScheduledContent
@@ -488,6 +492,19 @@ export function ContentEditor({ content, onSave, onCancel }: ContentEditorProps)
               />
             </div>
           )}
+
+          <div className="space-y-2">
+            <Label htmlFor="audioSrc">Audio Source</Label>
+            <Input
+              id="audioSrc"
+              value={formData.audioSrc || ""}
+              onChange={(e) => setFormData({ ...formData, audioSrc: e.target.value })}
+              placeholder="audio/2025/november/file.mp3 or https://example.com/audio.mp3"
+            />
+            <p className="text-xs text-muted-foreground">
+              Enter a relative path from project root (e.g., "audio/2025/november/file.mp3") or a full URL for remote storage.
+            </p>
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="authorNotes">Author Notes (Internal)</Label>

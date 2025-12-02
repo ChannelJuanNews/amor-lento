@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2 } from "lucide-react"
 import { apiCall } from "@/lib/api-client"
 import type { ScheduledContent } from "@/lib/types/content-schedule"
+import { AudioPlayer } from "@/components/core/audio-player"
 
 function LoveLetterDetailContent() {
     const params = useParams()
@@ -71,10 +72,17 @@ function LoveLetterDetailContent() {
         )
     }
 
+    // Get audio URL if available
+    const audioUrl = loveLetter.audioSrc
+        ? loveLetter.audioSrc.startsWith('http://') || loveLetter.audioSrc.startsWith('https://')
+            ? loveLetter.audioSrc
+            : `/api/love-letters/${slug}/audio`
+        : null
+
     return (
         <>
             <Navbar />
-            <main className="container mx-auto px-4 py-12">
+            <main className="container mx-auto px-4 py-12 pb-24">
                 <div className="max-w-4xl mx-auto space-y-6">
                     <Button variant="ghost" onClick={() => router.push("/love-letters")} className="mb-4">
                         <ArrowLeft className="h-4 w-4 mr-2" />
@@ -84,6 +92,9 @@ function LoveLetterDetailContent() {
                 </div>
             </main>
             <Footer />
+            {audioUrl && (
+                <AudioPlayer audioUrl={audioUrl} title={loveLetter.title} />
+            )}
         </>
     )
 }

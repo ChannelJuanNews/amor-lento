@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express'
 import supabase from '@/lib/supabase'
+import path from 'path'
+import fs from 'fs'
 
 const loveLettersRouter = Router()
 
@@ -22,6 +24,7 @@ function transformContentRow(row: any): any {
         createdAt: row.created_at,
         updatedAt: row.updated_at,
         authorNotes: row.author_notes || undefined,
+        audioSrc: row.audio_src || undefined,
     }
 }
 
@@ -105,6 +108,95 @@ function createSlug(title: string): string {
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '')
 }
+
+/**
+ * GET /api/love-letters/:slug/audio
+ * Serve audio file for a love letter
+ * The audio file path is stored in the database (audio_src field)
+ * NOTE: This route must be defined BEFORE /:slug to avoid route conflicts
+ */
+loveLettersRouter.get('/:slug/audio', async (req: Request, res: Response) => {
+    try {
+        const { slug } = req.params
+        const now = new Date().toISOString()
+
+        // Get all published love letters to find the one matching the slug
+        const { data, error } = await supabase
+            .from('scheduled_content')
+            .select('title, audio_src')
+            .eq('type', 'weekly-love-letter')
+            .in('status', ['published', 'scheduled'])
+            .or(`published_at.lte.${now},scheduled_at.lte.${now}`)
+
+        if (error) {
+            console.error('[Love Letters API] Error fetching love letter:', error)
+            return res.status(500).json({ error: error.message })
+        }
+
+        // Find the love letter that matches the slug
+        const loveLetter = (data || []).find((letter) => {
+            const letterSlug = createSlug(letter.title || '')
+            return letterSlug === slug
+        })
+
+        if (!loveLetter || !loveLetter.audio_src) {
+            return res.status(404).json({ error: 'Audio not found for this love letter' })
+        }
+
+        // Get the project root directory (one level up from dist/)
+        const projectRoot = typeof __dirname !== 'undefined'
+            ? path.resolve(__dirname, '..', '..')
+            : process.cwd()
+
+        // Construct the audio file path
+        // audio_src can be a relative path from project root (e.g., "audio/2025/november/file.mp3")
+        // or a full URL (for future remote storage)
+        let audioPath: string
+
+        // Check if it's a URL (starts with http:// or https://)
+        if (loveLetter.audio_src.startsWith('http://') || loveLetter.audio_src.startsWith('https://')) {
+            // For remote URLs, redirect to the URL
+            return res.redirect(loveLetter.audio_src)
+        }
+
+        // It's a local file path
+        audioPath = path.resolve(projectRoot, loveLetter.audio_src)
+
+        // Security: Ensure the path is within the project root to prevent directory traversal
+        const resolvedProjectRoot = path.resolve(projectRoot)
+        if (!audioPath.startsWith(resolvedProjectRoot)) {
+            console.error('[Love Letters API] Security: Attempted directory traversal:', audioPath)
+            return res.status(403).json({ error: 'Invalid audio path' })
+        }
+
+        // Check if file exists
+        if (!fs.existsSync(audioPath)) {
+            console.error('[Love Letters API] Audio file not found:', audioPath)
+            return res.status(404).json({ error: 'Audio file not found' })
+        }
+
+        // Set appropriate headers for audio streaming
+        res.setHeader('Content-Type', 'audio/mpeg')
+        res.setHeader('Accept-Ranges', 'bytes')
+        res.setHeader('Cache-Control', 'public, max-age=31536000') // Cache for 1 year
+
+        // Stream the file
+        const fileStream = fs.createReadStream(audioPath)
+        fileStream.pipe(res)
+
+        fileStream.on('error', (err) => {
+            console.error('[Love Letters API] Error streaming audio:', err)
+            if (!res.headersSent) {
+                res.status(500).json({ error: 'Error streaming audio file' })
+            }
+        })
+    } catch (error: any) {
+        console.error('[Love Letters API] Error:', error)
+        if (!res.headersSent) {
+            res.status(500).json({ error: 'Internal server error' })
+        }
+    }
+})
 
 /**
  * GET /api/love-letters/:slug

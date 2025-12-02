@@ -47,14 +47,19 @@ export function LoveLettersClient({ initialLoveLetters, initialTotal, initialHas
         }
     }, [filter])
 
-    // Load love letters when filter changes (but not on initial mount - we already have server data)
+    // Load love letters when filter changes
     useEffect(() => {
-        // Skip the effect on initial mount since we already have server-rendered data
+        // On initial mount, use server-rendered data but also fetch fresh data in background
+        // This ensures newly created love letters appear immediately
         if (isInitialMount.current) {
             isInitialMount.current = false
+            // Fetch fresh data in background to ensure we have the latest
+            // This is especially important for "all" filter
+            loadLoveLetters(1, true)
             return
         }
 
+        // For subsequent filter changes, always refetch fresh data
         setPage(1)
         setLoveLetters([])
         setHasMore(true)
@@ -158,3 +163,4 @@ export function LoveLettersClient({ initialLoveLetters, initialTotal, initialHas
         </>
     )
 }
+

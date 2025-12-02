@@ -12,7 +12,7 @@ import { ContentEditor } from "@/components/admin/content-editor"
 import { ContentList } from "@/components/admin/content-list"
 import { ScheduledContent } from "@/lib/types/content-schedule"
 import { apiCall } from "@/lib/api-client"
-import { Shield, Plus, CalendarIcon, FileText, LogOut, Mail, Loader2 } from 'lucide-react'
+import { Shield, Plus, CalendarIcon, FileText, LogOut, Mail, Loader2, MessageSquare } from 'lucide-react'
 
 interface AdminStats {
     scheduledCount: number
@@ -101,6 +101,12 @@ export default function AdminPage() {
                     <h1 className="font-serif text-4xl font-bold">Admin Panel</h1>
                 </div>
                 <div className="flex items-center gap-4">
+                    <Button variant="outline" size="sm" asChild>
+                        <Link href="/admin/text-messages">
+                            <MessageSquare className="h-4 w-4 mr-2" />
+                            Text Messages
+                        </Link>
+                    </Button>
                     <Button variant="outline" size="sm" asChild>
                         <Link href="/admin/webhooks">
                             <Mail className="h-4 w-4 mr-2" />

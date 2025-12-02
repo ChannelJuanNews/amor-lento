@@ -87,6 +87,13 @@ function MobileNavSheet({
                     >
                         {dict.nav.loveLetters}
                     </Link>
+                    <Link
+                        href="/text-messages"
+                        className="rounded text-sm py-2 px-2 hover:text-secondary transition-colors"
+                        onClick={onClose}
+                    >
+                        {dict.nav.textMessages}
+                    </Link>
                     {/* <Link
                         href="/shop"
                         className="rounded text-sm py-2 px-2 hover:text-secondary transition-colors"
@@ -172,6 +179,9 @@ export function Navbar() {
                             </Link>
                             <Link href="/love-letters" className="text-sm hover:text-secondary transition-colors">
                                 {dict.nav.loveLetters}
+                            </Link>
+                            <Link href="/text-messages" className="text-sm hover:text-secondary transition-colors">
+                                {dict.nav.textMessages}
                             </Link>
                             {/* <Link href="/shop" className="text-sm hover:text-secondary transition-colors">
                                 {dict.nav.shop}

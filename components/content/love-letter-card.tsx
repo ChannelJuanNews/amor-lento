@@ -18,18 +18,29 @@ function createSlug(title: string): string {
         .replace(/(^-|-$)/g, '')
 }
 
+// Helper function to decode HTML entities (SSR-safe)
+function decodeHTMLEntities(text: string): string {
+    const entities: Record<string, string> = {
+        '&nbsp;': ' ',
+        '&amp;': '&',
+        '&lt;': '<',
+        '&gt;': '>',
+        '&quot;': '"',
+        '&#39;': "'",
+        '&apos;': "'",
+    }
+    return text.replace(/&[^;]+;/g, (entity) => entities[entity] || entity)
+}
+
 // Helper function to strip HTML and get text preview (SSR-safe)
 function getTextPreview(html: string, maxLength: number = 200): string {
-    if (typeof window === 'undefined') {
-        // Server-side: simple regex to strip HTML tags
-        const text = html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
-        if (text.length <= maxLength) return text
-        return text.slice(0, maxLength).trim() + '...'
-    }
-    // Client-side: use DOM
-    const tempDiv = document.createElement('div')
-    tempDiv.innerHTML = html
-    const text = tempDiv.textContent || tempDiv.innerText || ''
+    // Strip HTML tags
+    let text = html.replace(/<[^>]*>/g, '')
+    // Decode HTML entities to ensure server/client consistency
+    text = decodeHTMLEntities(text)
+    // Normalize whitespace
+    text = text.replace(/\s+/g, ' ').trim()
+
     if (text.length <= maxLength) return text
     return text.slice(0, maxLength).trim() + '...'
 }

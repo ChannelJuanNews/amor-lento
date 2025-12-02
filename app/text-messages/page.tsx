@@ -1,27 +1,27 @@
 import { Navbar } from "@/components/core/navbar"
 import { Footer } from "@/components/core/footer"
-import { getPoemsServer } from "@/lib/poems-server"
-import { PoemsListClient } from "./poems-list-client"
+import { getTextMessagesServer } from "@/lib/text-messages-server"
+import { TextMessagesListClient } from "./text-messages-list-client"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-    title: "Poems | Amor Lento",
-    description: "A collection of love poems written at a human pace. Daily poems in English and Spanish.",
+    title: "Text Messages | Amor Lento",
+    description: "iPhone-style text message conversations. Create and share beautiful message mockups.",
     openGraph: {
-        title: "Poems | Amor Lento",
-        description: "A collection of love poems written at a human pace",
+        title: "Text Messages | Amor Lento",
+        description: "iPhone-style text message conversations",
         type: "website",
     },
     twitter: {
         card: "summary_large_image",
-        title: "Poems | Amor Lento",
-        description: "A collection of love poems written at a human pace",
+        title: "Text Messages | Amor Lento",
+        description: "iPhone-style text message conversations",
     },
 }
 
-export default async function PoemsPage() {
-    // Fetch initial poems on the server for SEO
-    const initialData = await getPoemsServer({ page: 1, limit: 10 })
+export default async function TextMessagesPage() {
+    // Fetch initial text messages on the server for SEO
+    const initialData = await getTextMessagesServer({ page: 1, limit: 10 })
 
     return (
         <>
@@ -30,15 +30,15 @@ export default async function PoemsPage() {
                 <div className="max-w-4xl mx-auto space-y-8">
                     {/* Header */}
                     <div className="text-center space-y-4">
-                        <h1 className="font-serif text-4xl md:text-5xl font-bold">Poems</h1>
+                        <h1 className="font-serif text-4xl md:text-5xl font-bold">Text Messages</h1>
                         <p className="text-muted-foreground text-lg">
-                            A collection of love poems written at a human pace
+                            iPhone-style text message conversations
                         </p>
                     </div>
 
                     {/* Client-side interactive list */}
-                    <PoemsListClient
-                        initialPoems={initialData.poems}
+                    <TextMessagesListClient
+                        initialTextMessages={initialData.textMessages}
                         initialTotal={initialData.pagination.total}
                         initialHasMore={initialData.pagination.hasMore}
                     />

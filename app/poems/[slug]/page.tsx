@@ -1,76 +1,52 @@
-'use client'
-
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { notFound } from "next/navigation"
 import { Navbar } from "@/components/core/navbar"
 import { Footer } from "@/components/core/footer"
-import { LocaleProvider } from "@/lib/i18n/locale-context"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { ArrowLeft, Loader2 } from "lucide-react"
-import { apiCall } from "@/lib/api-client"
-import type { Poem } from "@/lib/types/poem"
-import { AudioPlayer } from "@/components/core/audio-player"
+import { getPoemBySlugServer } from "@/lib/poems-server"
+import type { Metadata } from "next"
+import { PoemClientWrapper } from "./poem-client-wrapper"
 
-function PoemDetailContent() {
-    const params = useParams()
-    const router = useRouter()
-    const slug = params.slug as string
-    const [poem, setPoem] = useState<Poem | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
+interface PoemPageProps {
+    params: Promise<{ slug: string }>
+}
 
-    useEffect(() => {
-        const fetchPoem = async () => {
-            setLoading(true)
-            setError(null)
-            try {
-                const response = await apiCall<{ poem: Poem }>(`/poems/${slug}`)
-                setPoem(response.poem)
-            } catch (err: any) {
-                setError(err.message || "Failed to load poem")
-            } finally {
-                setLoading(false)
-            }
+// Generate metadata for SEO
+export async function generateMetadata({ params }: PoemPageProps): Promise<Metadata> {
+    const { slug } = await params
+    const poem = await getPoemBySlugServer(slug)
+
+    if (!poem) {
+        return {
+            title: "Poem Not Found",
         }
-
-        if (slug) {
-            fetchPoem()
-        }
-    }, [slug])
-
-    if (loading) {
-        return (
-            <>
-                <Navbar />
-                <main className="container mx-auto px-4 py-12">
-                    <div className="max-w-4xl mx-auto text-center py-20">
-                        <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground mb-4" />
-                        <p className="text-muted-foreground">Loading poem...</p>
-                    </div>
-                </main>
-                <Footer />
-            </>
-        )
     }
 
-    if (error || !poem) {
-        return (
-            <>
-                <Navbar />
-                <main className="container mx-auto px-4 py-12">
-                    <div className="max-w-4xl mx-auto text-center py-20">
-                        <p className="text-red-600 mb-4">{error || "Poem not found"}</p>
-                        <Button variant="outline" onClick={() => router.push("/poems")}>
-                            <ArrowLeft className="h-4 w-4 mr-2" />
-                            Back to Poems
-                        </Button>
-                    </div>
-                </main>
-                <Footer />
-            </>
-        )
+    return {
+        title: `${poem.title} | Amor Lento`,
+        description: poem.excerpt || `Read "${poem.title}" - a ${poem.lang === "es" ? "Spanish" : "English"} poem from Amor Lento`,
+        openGraph: {
+            title: poem.title,
+            description: poem.excerpt || `Read "${poem.title}"`,
+            type: "article",
+            locale: poem.lang === "es" ? "es_ES" : "en_US",
+            publishedTime: poem.publishedAt,
+            tags: poem.tags,
+        },
+        twitter: {
+            card: "summary_large_image",
+            title: poem.title,
+            description: poem.excerpt || `Read "${poem.title}"`,
+        },
+    }
+}
+
+export default async function PoemDetailPage({ params }: PoemPageProps) {
+    const { slug } = await params
+    const poem = await getPoemBySlugServer(slug)
+
+    if (!poem) {
+        notFound()
     }
 
     // Handle date parsing - publishedAt is datetime
@@ -78,12 +54,12 @@ function PoemDetailContent() {
     if (poem.publishedAt) {
         publishedDate = new Date(poem.publishedAt)
     }
-    const displayDate = publishedDate && !isNaN(publishedDate.getTime()) 
-        ? publishedDate 
+    const displayDate = publishedDate && !isNaN(publishedDate.getTime())
+        ? publishedDate
         : null
 
     // Get audio URL if available
-    const audioUrl = poem.audioSrc 
+    const audioUrl = poem.audioSrc
         ? poem.audioSrc.startsWith('http://') || poem.audioSrc.startsWith('https://')
             ? poem.audioSrc
             : `/api/poems/${slug}/audio`
@@ -94,10 +70,7 @@ function PoemDetailContent() {
             <Navbar />
             <main className="container mx-auto px-4 py-12 pb-24">
                 <div className="max-w-4xl mx-auto space-y-6">
-                    <Button variant="ghost" onClick={() => router.push("/poems")} className="mb-4">
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back to Poems
-                    </Button>
+                    <PoemClientWrapper />
                     <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
                         <CardHeader>
                             <div className="flex items-center justify-between mb-2">
@@ -141,17 +114,8 @@ function PoemDetailContent() {
             </main>
             <Footer />
             {audioUrl && (
-                <AudioPlayer audioUrl={audioUrl} title={poem.title} />
+                <PoemClientWrapper audioUrl={audioUrl} title={poem.title} />
             )}
         </>
     )
 }
-
-export default function PoemDetailPage() {
-    return (
-        <LocaleProvider>
-            <PoemDetailContent />
-        </LocaleProvider>
-    )
-}
-
